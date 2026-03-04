@@ -13,7 +13,11 @@ import path from 'path';
 
 import { logger } from './logger.js';
 
-const CREDENTIALS_PATH = path.join(os.homedir(), '.claude', '.credentials.json');
+const CREDENTIALS_PATH = path.join(
+  os.homedir(),
+  '.claude',
+  '.credentials.json',
+);
 
 // Refresh when less than 2 hours remain (tokens seem to last ~8 hours)
 const REFRESH_BUFFER_MS = 2 * 60 * 60 * 1000;
@@ -45,7 +49,10 @@ function triggerRefresh(): boolean {
     logger.debug({ output: output.trim() }, 'claude auth status output');
     return true;
   } catch (err) {
-    logger.warn({ err }, 'Failed to trigger Claude token refresh via auth status');
+    logger.warn(
+      { err },
+      'Failed to trigger Claude token refresh via auth status',
+    );
     return false;
   }
 }
@@ -88,7 +95,9 @@ export function getClaudeOAuthToken(): string | null {
 
   if (newToken && newToken !== accessToken) {
     logger.info(
-      { newExpiresAt: newExpiry ? new Date(newExpiry).toISOString() : 'unknown' },
+      {
+        newExpiresAt: newExpiry ? new Date(newExpiry).toISOString() : 'unknown',
+      },
       'Claude OAuth token refreshed successfully',
     );
     return newToken;
