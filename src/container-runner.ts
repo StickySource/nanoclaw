@@ -4,6 +4,7 @@
  */
 import { ChildProcess, exec, spawn } from 'child_process';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 import {
@@ -161,6 +162,21 @@ function buildVolumeMounts(
     containerPath: '/home/node/.claude',
     readonly: false,
   });
+
+  // Bind-mount the host's Claude credentials file so the container can refresh
+  // OAuth tokens during long-running sessions (tokens expire after ~8 hours).
+  const hostCredentials = path.join(
+    os.homedir(),
+    '.claude',
+    '.credentials.json',
+  );
+  if (fs.existsSync(hostCredentials)) {
+    mounts.push({
+      hostPath: hostCredentials,
+      containerPath: '/home/node/.claude/.credentials.json',
+      readonly: false,
+    });
+  }
 
   // Per-group IPC namespace: each group gets its own IPC directory
   // This prevents cross-group privilege escalation via IPC

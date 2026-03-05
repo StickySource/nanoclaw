@@ -40,6 +40,7 @@ import {
 import { GroupQueue } from './group-queue.js';
 import { resolveGroupFolderPath } from './group-folder.js';
 import { startIpcWatcher } from './ipc.js';
+import { getClaudeOAuthToken } from './oauth-refresh.js';
 import { findChannel, formatMessages, formatOutbound } from './router.js';
 import { startSchedulerLoop } from './task-scheduler.js';
 import { Channel, NewMessage, RegisteredGroup } from './types.js';
@@ -521,6 +522,21 @@ async function main(): Promise<void> {
     logger.fatal('No channels connected');
     process.exit(1);
   }
+
+  // Keep OAuth token alive by refreshing every hour, even when idle.
+  // Without this, the token expires (~8h) if no messages arrive.
+  setInterval(
+    () => {
+      try {
+        getClaudeOAuthToken();
+      } catch (err) {
+        logger.warn({ err }, 'Background OAuth refresh failed');
+      }
+    },
+    60 * 60 * 1000,
+  );
+  // Also refresh immediately at startup
+  getClaudeOAuthToken();
 
   // Start subsystems (independently of connection handler)
   startSchedulerLoop({
