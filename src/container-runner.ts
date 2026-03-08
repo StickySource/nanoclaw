@@ -44,6 +44,7 @@ export interface ContainerInput {
 }
 
 export interface ContainerOutput {
+  type?: 'result' | 'progress';
   status: 'success' | 'error';
   result: string | null;
   newSessionId?: string;

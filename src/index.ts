@@ -206,7 +206,15 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
   let hadError = false;
   let outputSentToUser = false;
 
+  await channel.sendMessage(chatJid, 'On it...');
+
   const output = await runAgent(group, prompt, chatJid, async (result) => {
+    // Progress messages: send to user but don't count as real output
+    if (result.type === 'progress' && result.result) {
+      await channel.sendMessage(chatJid, result.result);
+      return;
+    }
+
     // Streaming output callback — called for each agent result
     if (result.result) {
       const raw =

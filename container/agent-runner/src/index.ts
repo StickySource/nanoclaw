@@ -31,6 +31,7 @@ interface ContainerInput {
 }
 
 interface ContainerOutput {
+  type?: 'result' | 'progress';
   status: 'success' | 'error';
   result: string | null;
   newSessionId?: string;
@@ -112,6 +113,10 @@ function writeOutput(output: ContainerOutput): void {
   console.log(OUTPUT_START_MARKER);
   console.log(JSON.stringify(output));
   console.log(OUTPUT_END_MARKER);
+}
+
+function writeProgress(text: string): void {
+  writeOutput({ type: 'progress', status: 'success', result: text });
 }
 
 function log(message: string): void {
@@ -466,11 +471,15 @@ async function runQuery(
     if (message.type === 'system' && message.subtype === 'init') {
       newSessionId = message.session_id;
       log(`Session initialized: ${newSessionId}`);
+      writeProgress('Thinking...');
     }
 
     if (message.type === 'system' && (message as { subtype?: string }).subtype === 'task_notification') {
       const tn = message as { task_id: string; status: string; summary: string };
       log(`Task notification: task=${tn.task_id} status=${tn.status} summary=${tn.summary}`);
+      if (tn.summary) {
+        writeProgress(`Getting help with ${tn.summary}...`);
+      }
     }
 
     if (message.type === 'result') {
